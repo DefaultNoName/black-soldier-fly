@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BSF Farm Control - Mobile</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        .mobile-header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .header-title h1 {
+            color: #2d3748;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .mode-badge {
+            background: #48bb78;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        /* Content Area */
+        .content-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 15px;
+            padding-bottom: 80px;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Section Headers */
+        .section-header {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        /* Metric Cards */
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        
+        .metric-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .metric-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .metric-label {
+            color: #718096;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        
+        .metric-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        
+        .metric-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        .status-optimal {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .status-warning {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+        
+        .status-critical {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 3px;
+            transition: width 0.5s;
+        }
+        
+        .stats-row {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 9px;
+            color: #718096;
+            margin-bottom: 3px;
+        }
+        
+        .stat-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        /* Chart Cards */
+        .chart-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 12px;
+        }
+        
+        .chart-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        
+        .chart-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .chart-info {
+            flex: 1;
+        }
+        
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .chart-subtitle {
+            font-size: 11px;
+            color: #718096;
+        }
+        
+        .chart-canvas-container {
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        canvas {
+            background: white;
+            border-radius: 6px;
+            width: 100%;
+            display: block;
+        }
+        
+        /* Control Cards */
+        .control-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 12px;
+        }
+        
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .control-name {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 15px;
+        }
+        
+        .control-button {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            min-width: 80px;
+        }
+        
+        .btn-on {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .btn-on:active {
+            background: #38a169;
+            transform: scale(0.95);
+        }
+        
+        .btn-off {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+        
+        .btn-off:active {
+            background: #cbd5e0;
+            transform: scale(0.95);
+        }
+        
+        .control-info {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 8px;
+        }
+        
+        /* Status Cards */
+        .status-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 12px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f7fafc;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .status-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .status-label {
+            font-weight: 500;
+            color: #2d3748;
+            font-size: 14px;
+        }
+        
+        .status-value {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .status-online {
+            color: #48bb78;
+        }
+        
+        .status-offline {
+            color: #e53e3e;
+        }
+        
+        .status-idle {
+            color: #718096;
+        }
+        
+        /* Alert Cards */
+        .alert-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 12px;
+        }
+        
+        .alert-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .alert-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+        }
+        
+        .alert-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        
+        .alert-content {
+            flex: 1;
+        }
+        
+        .alert-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+        
+        .alert-text {
+            font-size: 12px;
+            color: #4a5568;
+            line-height: 1.4;
+        }
+        
+        .alert-time {
+            font-size: 11px;
+            color: #718096;
+            margin-top: 4px;
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            padding-bottom: max(8px, env(safe-area-inset-bottom));
+            z-index: 1000;
+        }
+        
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 0;
+            cursor: pointer;
+            transition: 0.2s;
+            border: none;
+            background: none;
+            color: #718096;
+        }
+        
+        .nav-item.active {
+            color: #667eea;
+        }
+        
+        .nav-item:active {
+            transform: scale(0.95);
+        }
+        
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+        
+        .nav-label {
+            font-size: 10px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="mobile-header">
+        <div class="header-title">
+            <span style="font-size: 24px;">🦟</span>
+            <h1>BSF Farm Control</h1>
+        </div>
+        <div class="mode-badge" id="modeBadge">AUTO</div>
+    </div>
+    
+    <!-- Content Wrapper -->
+    <div class="content-wrapper" id="contentWrapper">
+        
+        <!-- Tab 1: Sensor Parameters -->
+        <div class="tab-content active" id="tab-parameters">
+            <div class="section-header">
+                <span>📊</span> Sensor Parameters
+            </div>
+            
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="metric-icon">🌡️</div>
+                    <div class="metric-label">Temperature</div>
+                    <div class="metric-value" id="tempValue">28.5°C</div>
+                    <div class="metric-status status-optimal">Optimal</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 75%;"></div>
+                    </div>
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <div class="stat-label">Min</div>
+                            <div class="stat-value" id="tempMin">27.2°C</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Max</div>
+                            <div class="stat-value" id="tempMax">29.8°C</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-icon">💧</div>
+                    <div class="metric-label">Humidity</div>
+                    <div class="metric-value" id="humidValue">65%</div>
+                    <div class="metric-status status-optimal">Optimal</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 65%;"></div>
+                    </div>
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <div class="stat-label">Min</div>
+                            <div class="stat-value" id="humidMin">58%</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Max</div>
+                            <div class="stat-value" id="humidMax">72%</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-icon">🌊</div>
+                    <div class="metric-label">Substrate Moisture</div>
+                    <div class="metric-value" id="moistValue">70%</div>
+                    <div class="metric-status status-optimal">Optimal</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 70%;"></div>
+                    </div>
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <div class="stat-label">Target</div>
+                            <div class="stat-value">65-75%</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-icon">💡</div>
+                    <div class="metric-label">Light Intensity</div>
+                    <div class="metric-value" id="lightValue">450 lux</div>
+                    <div class="metric-status status-optimal">Day Mode</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 45%;"></div>
+                    </div>
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <div class="stat-label">Status</div>
+                            <div class="stat-value">☀️ Active</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="status-card">
+                <div class="section-header" style="margin-bottom: 12px; font-size: 14px;">
+                    <span>📈</span> Production Stats
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Current Batch</span>
+                    <span class="status-value" style="color: #667eea;">Day 12</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Estimated Yield</span>
+                    <span class="status-value" style="color: #667eea;">45 kg</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Harvest in</span>
+                    <span class="status-value" style="color: #48bb78;">6 days</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab 2: Sensor Graphs -->
+        <div class="tab-content" id="tab-graphs">
+            <div class="section-header">
+                <span>📈</span> Environmental Trends
+            </div>
+            
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-icon" style="background: linear-gradient(135deg, #f56565 0%, #c53030 100%);">
+                        🌡️
+                    </div>
+                    <div class="chart-info">
+                        <div class="chart-title">Temperature Over Time</div>
+                        <div class="chart-subtitle">Optimal: 27-30°C</div>
+                    </div>
+                </div>
+                <div class="chart-canvas-container">
+                    <canvas id="tempChart" width="320" height="180"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-icon" style="background: linear-gradient(135deg, #4299e1 0%, #2b6cb0 100%);">
+                        💧
+                    </div>
+                    <div class="chart-info">
+                        <div class="chart-title">Humidity Over Time</div>
+                        <div class="chart-subtitle">Optimal: 60-70%</div>
+                    </div>
+                </div>
+                <div class="chart-canvas-container">
+                    <canvas id="humidChart" width="320" height="180"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-icon" style="background: linear-gradient(135deg, #48bb78 0%, #2f855a 100%);">
+                        🌊
+                    </div>
+                    <div class="chart-info">
+                        <div class="chart-title">Substrate Moisture</div>
+                        <div class="chart-subtitle">Optimal: 65-75%</div>
+                    </div>
+                </div>
+                <div class="chart-canvas-container">
+                    <canvas id="moistChart" width="320" height="180"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-icon" style="background: linear-gradient(135deg, #ed8936 0%, #c05621 100%);">
+                        💡
+                    </div>
+                    <div class="chart-info">
+                        <div class="chart-title">Light Intensity</div>
+                        <div class="chart-subtitle">Optimal: 300-600 lux</div>
+                    </div>
+                </div>
+                <div class="chart-canvas-container">
+                    <canvas id="lightChart" width="320" height="180"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab 3: Manual Controls -->
+        <div class="tab-content" id="tab-controls">
+            <div class="section-header">
+                <span>🎛️</span> Manual Controls
+            </div>
+            
+            <div class="control-card">
+                <div class="control-header">
+                    <div class="control-name">
+                        <span style="font-size: 24px;">🌀</span>
+                        Ventilation Fan
+                    </div>
+                    <button class="control-button btn-on" id="fanBtn" onclick="toggleDevice('fan')">ON</button>
+                </div>
+                <div class="control-info">Running for 12 minutes</div>
+            </div>
+            
+            <div class="control-card">
+                <div class="control-header">
+                    <div class="control-name">
+                        <span style="font-size: 24px;">💦</span>
+                        Water Pump
+                    </div>
+                    <button class="control-button btn-off" id="pumpBtn" onclick="toggleDevice('pump')">OFF</button>
+                </div>
+                <div class="control-info">Last run: 2 hours ago</div>
+            </div>
+            
+            <div class="control-card">
+                <div class="control-header">
+                    <div class="control-name">
+                        <span style="font-size: 24px;">💡</span>
+                        Grow Light
+                    </div>
+                    <button class="control-button btn-on" id="lightBtn" onclick="toggleDevice('light')">AUTO</button>
+                </div>
+                <div class="control-info">Follows daylight schedule</div>
+            </div>
+            
+            <div class="control-card">
+                <div class="control-header">
+                    <div class="control-name">
+                        <span style="font-size: 24px;">🔥</span>
+                        Heater
+                    </div>
+                    <button class="control-button btn-off" id="heaterBtn" onclick="toggleDevice('heater')">OFF</button>
+                </div>
+                <div class="control-info">Standby mode</div>
+            </div>
+        </div>
+        
+        <!-- Tab 4: System Status -->
+        <div class="tab-content" id="tab-status">
+            <div class="section-header">
+                <span>⚙️</span> System Status
+            </div>
+            
+            <div class="status-card">
+                <div class="status-item">
+                    <span class="status-label">ESP32 Controller</span>
+                    <span class="status-value status-online">● Online</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">WiFi Connection</span>
+                    <span class="status-value status-online">● Strong</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Data Logging</span>
+                    <span class="status-value status-online">● Active</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">DHT22 Sensor</span>
+                    <span class="status-value status-online">● Working</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Moisture Sensor</span>
+                    <span class="status-value status-online">● Working</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">LDR Sensor</span>
+                    <span class="status-value status-online">● Working</span>
+                </div>
+            </div>
+            
+            <div class="status-card">
+                <div class="section-header" style="margin-bottom: 12px; font-size: 14px;">
+                    <span>🔌</span> Actuators Status
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Fan</span>
+                    <span class="status-value status-online">● Active</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Water Pump</span>
+                    <span class="status-value status-idle">● Idle</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Grow Light</span>
+                    <span class="status-value status-online">● Active</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Heater</span>
+                    <span class="status-value status-idle">● Standby</span>
+                </div>
+            </div>
+            
+            <div class="status-card">
+                <div class="section-header" style="margin-bottom: 12px; font-size: 14px;">
+                    <span>📡</span> System Information
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Uptime</span>
+                    <span class="status-value" style="color: #667eea;">5d 12h 34m</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Last Update</span>
+                    <span class="status-value" style="color: #667eea;">Just now</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab 5: Alerts & Notifications -->
+        <div class="tab-content" id="tab-alerts">
+            <div class="section-header">
+                <span>🔔</span> Alerts & Notifications
+            </div>
+            
+            <div class="alert-card">
+                <div class="alert-item alert-warning">
+                    <div class="alert-icon">⚠️</div>
+                    <div class="alert-content">
+                        <div class="alert-title">Temperature Warning</div>
+                        <div class="alert-text">Temperature reached 31.2°C - Fan activated automatically</div>
+                        <div class="alert-time">2:30 PM</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert-card">
+                <div class="alert-item alert-info">
+                    <div class="alert-icon">ℹ️</div>
+                    <div class="alert-content">
+                        <div class="alert-title">System Update</div>
+                        <div class="alert-text">All sensors operational. WiFi signal: Strong</div>
+                        <div class="alert-time">1:45 PM</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert-card">
+                <div class="alert-item alert-info">
+                    <div class="alert-icon">💧</div>
+                    <div class="alert-content">
+                        <div class="alert-title">Irrigation Complete</div>
+                        <div class="alert-text">Water pump ran for 5 minutes. Moisture level: 72%</div>
+                        <div class="alert-time">11:20 AM</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert-card">
+                <div class="alert-item alert-info">
+                    <div class="alert-icon">🌡️</div>
+                    <div class="alert-content">
+                        <div class="alert-title">Temperature Normalized</div>
+                        <div class="alert-text">Temperature returned to optimal range (28.5°C)</div>
+                        <div class="alert-time">10:15 AM</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <button class="nav-item active" onclick="switchTab('parameters')">
+            <div class="nav-icon">📊</div>
+            <div class="nav-label">Parameters</div>
+        </button>
+        <button class="nav-item" onclick="switchTab('graphs')">
+            <div class="nav-icon">📈</div>
+            <div class="nav-label">Graphs</div>
+        </button>
+        <button class="nav-item" onclick="switchTab('controls')">
+            <div class="nav-icon">🎛️</div>
+            <div class="nav-label">Controls</div>
+        </button>
+        <button class="nav-item" onclick="switchTab('status')">
+            <div class="nav-icon">⚙️</div>
+            <div class="nav-label">Status</div>
+        </button>
+        <button class="nav-item" onclick="switchTab('alerts')">
+            <div class="nav-icon">🔔</div>
+            <div class="nav-label">Alerts</div>
+        </button>
+    </div>
+    
+    <script>
+        // Tab switching
+        function switchTab(tabName) {
+            // Scroll to top when switching tabs
+            document.getElementById('contentWrapper').scrollTop = 0;
+            
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById('tab-' + tabName).classList.add('active');
+            
+            // Set active nav item
+            event.currentTarget.classList.add('active');
+            
+            // Redraw charts if graphs tab is selected
+            if (tabName === 'graphs') {
+                setTimeout(() => {
+                    drawAllCharts();
+                }, 150);
+            }
+        }
+        
+        // Canvas references
+        const canvases = {
+            temperature: document.getElementById('tempChart'),
+            humidity: document.getElementById('humidChart'),
+            moisture: document.getElementById('moistChart'),
+            light: document.getElementById('lightChart')
+        };
+        
+        const contexts = {
+            temperature: canvases.temperature ? canvases.temperature.getContext('2d') : null,
+            humidity: canvases.humidity ? canvases.humidity.getContext('2d') : null,
+            moisture: canvases.moisture ? canvases.moisture.getContext('2d') : null,
+            light: canvases.light ? canvases.light.getContext('2d') : null
+        };
+        
+        // Sample data based on BSF optimal conditions from research
+        const chartData = {
+            temperature: {
+                title: 'Temperature (°C)',
+                color: '#f56565',
+                optimalRange: [27, 30],
+                data: [26.5, 27.2, 27.8, 28.5, 29.1, 29.8, 30.2, 29.5, 28.9, 28.3, 27.6, 27.2, 27.8, 28.4, 29.0, 29.6, 30.1, 29.7, 29.2, 28.6, 28.0, 27.4, 27.0, 26.8],
+                unit: '°C',
+                yMin: 25,
+                yMax: 32
+            },
+            humidity: {
+                title: 'Humidity (%)',
+                color: '#4299e1',
+                optimalRange: [60, 70],
+                data: [58, 59, 61, 63, 65, 67, 69, 71, 68, 66, 64, 62, 60, 61, 63, 65, 67, 69, 70, 68, 66, 64, 62, 60],
+                unit: '%',
+                yMin: 50,
+                yMax: 80
+            },
+            moisture: {
+                title: 'Substrate Moisture (%)',
+                color: '#48bb78',
+                optimalRange: [65, 75],
+                data: [64, 65, 66, 68, 70, 72, 74, 73, 71, 69, 67, 66, 65, 67, 69, 71, 73, 74, 72, 70, 68, 66, 65, 64],
+                unit: '%',
+                yMin: 60,
+                yMax: 80
+            },
+            light: {
+                title: 'Light Intensity (lux)',
+                color: '#ed8936',
+                optimalRange: [300, 600],
+                data: [0, 0, 0, 0, 50, 150, 300, 450, 520, 580, 600, 590, 580, 570, 550, 500, 400, 250, 100, 20, 0, 0, 0, 0],
+                unit: ' lux',
+                yMin: 0,
+                yMax: 700
+            }
+        };
+        
+        const timeLabels = ['12AM', '1AM', '2AM', '3AM', '4AM', '5AM', '6AM', '7AM', '8AM', '9AM', '10AM', '11AM',
+            '12PM', '1PM', '2PM', '3PM', '4PM', '5PM', '6PM', '7PM', '8PM', '9PM', '10PM', '11PM'];
+        
+        function drawChart(type, canvas, ctx) {
+            if (!canvas || !ctx) return;
+            
+            const data = chartData[type];
+            const rect = canvas.getBoundingClientRect();
+            
+            // If canvas has no width (hidden), skip drawing
+            if (rect.width === 0) return;
+            
+            const dpr = window.devicePixelRatio || 1;
+            
+            // Set actual canvas pixel dimensions
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            
+            // Scale context to match DPR
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.scale(dpr, dpr);
+            
+            const width = rect.width;
+            const height = rect.height;
+            const padding = 40;
+            const chartWidth = width - padding * 2;
+            const chartHeight = height - padding * 2;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw optimal range background
+            const rangeTop = padding + chartHeight - ((data.optimalRange[1] - data.yMin) / (data.yMax - data.yMin) * chartHeight);
+            const rangeBottom = padding + chartHeight - ((data.optimalRange[0] - data.yMin) / (data.yMax - data.yMin) * chartHeight);
+            ctx.fillStyle = 'rgba(72, 187, 120, 0.15)';
+            ctx.fillRect(padding, rangeTop, chartWidth, rangeBottom - rangeTop);
+            
+            // Draw Y-axis
+            ctx.strokeStyle = '#cbd5e0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, padding + chartHeight);
+            ctx.stroke();
+            
+            // Draw X-axis
+            ctx.beginPath();
+            ctx.moveTo(padding, padding + chartHeight);
+            ctx.lineTo(padding + chartWidth, padding + chartHeight);
+            ctx.stroke();
+            
+            // Draw Y-axis labels
+            ctx.fillStyle = '#718096';
+            ctx.font = '10px Arial';
+            ctx.textAlign = 'right';
+            const ySteps = 5;
+            for (let i = 0; i <= ySteps; i++) {
+                const value = data.yMin + (data.yMax - data.yMin) * (i / ySteps);
+                const y = padding + chartHeight - (i / ySteps * chartHeight);
+                ctx.fillText(value.toFixed(0), padding - 8, y + 3);
+                
+                // Draw grid lines
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(padding + chartWidth, y);
+                ctx.stroke();
+            }
+            
+            // Draw X-axis labels (every 4 hours for mobile)
+            ctx.textAlign = 'center';
+            ctx.font = '9px Arial';
+            for (let i = 0; i < timeLabels.length; i += 4) {
+                const x = padding + (i / (timeLabels.length - 1)) * chartWidth;
+                ctx.fillText(timeLabels[i], x, padding + chartHeight + 15);
+            }
+            
+            // Draw data line
+            ctx.strokeStyle = data.color;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            
+            data.data.forEach((value, index) => {
+                const x = padding + (index / (data.data.length - 1)) * chartWidth;
+                const y = padding + chartHeight - ((value - data.yMin) / (data.yMax - data.yMin) * chartHeight);
+                
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+            
+            ctx.stroke();
+            
+            // Draw data points (every other point)
+            ctx.fillStyle = data.color;
+            data.data.forEach((value, index) => {
+                if (index % 2 === 0) {
+                    const x = padding + (index / (data.data.length - 1)) * chartWidth;
+                    const y = padding + chartHeight - ((value - data.yMin) / (data.yMax - data.yMin) * chartHeight);
+                    
+                    ctx.beginPath();
+                    ctx.arc(x, y, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+            
+            // Draw current value indicator
+            const lastValue = data.data[data.data.length - 1];
+            const lastX = padding + chartWidth;
+            const lastY = padding + chartHeight - ((lastValue - data.yMin) / (data.yMax - data.yMin) * chartHeight);
+            
+            ctx.fillStyle = data.color;
+            ctx.beginPath();
+            ctx.arc(lastX, lastY, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw current value text
+            ctx.fillStyle = data.color;
+            ctx.font = 'bold 11px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(lastValue.toFixed(1) + data.unit, lastX + 8, lastY + 4);
+        }
+        
+        function drawAllCharts() {
+            drawChart('temperature', canvases.temperature, contexts.temperature);
+            drawChart('humidity', canvases.humidity, contexts.humidity);
+            drawChart('moisture', canvases.moisture, contexts.moisture);
+            drawChart('light', canvases.light, contexts.light);
+        }
+        
+        // Simulate real-time data updates
+        function updateValues() {
+            const temp = (27 + Math.random() * 3).toFixed(1);
+            const humid = (60 + Math.random() * 15).toFixed(0);
+            const moist = (65 + Math.random() * 10).toFixed(0);
+            const light = (400 + Math.random() * 100).toFixed(0);
+            
+            document.getElementById('tempValue').textContent = temp + '°C';
+            document.getElementById('humidValue').textContent = humid + '%';
+            document.getElementById('moistValue').textContent = moist + '%';
+            document.getElementById('lightValue').textContent = light + ' lux';
+            
+            // Update chart data
+            chartData.temperature.data.shift();
+            chartData.temperature.data.push(parseFloat(temp));
+            
+            chartData.humidity.data.shift();
+            chartData.humidity.data.push(parseFloat(humid));
+            
+            chartData.moisture.data.shift();
+            chartData.moisture.data.push(parseFloat(moist));
+            
+            chartData.light.data.shift();
+            chartData.light.data.push(parseFloat(light));
+            
+            // Redraw all charts if graphs tab is active
+            if (document.getElementById('tab-graphs').classList.contains('active')) {
+                drawAllCharts();
+            }
+        }
+        
+        function toggleDevice(device) {
+            const btn = document.getElementById(device + 'Btn');
+            if (btn.classList.contains('btn-on')) {
+                btn.classList.remove('btn-on');
+                btn.classList.add('btn-off');
+                btn.textContent = 'OFF';
+            } else {
+                btn.classList.remove('btn-off');
+                btn.classList.add('btn-on');
+                btn.textContent = 'ON';
+            }
+        }
+        
+        // Initialize - don't draw charts immediately since they're hidden
+        window.addEventListener('load', () => {
+            // Only draw if graphs tab happens to be active on load
+            if (document.getElementById('tab-graphs').classList.contains('active')) {
+                setTimeout(() => {
+                    drawAllCharts();
+                }, 200);
+            }
+        });
+        
+        // Redraw charts on window resize
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (document.getElementById('tab-graphs').classList.contains('active')) {
+                    drawAllCharts();
+                }
+            }, 100);
+        });
+        
+        // Update values every 5 seconds
+        setInterval(updateValues, 5000);
+    </script>
+</body>
+</html>

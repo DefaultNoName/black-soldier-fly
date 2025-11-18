@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BSF Farm Control System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header-title h1 {
+            color: #2d3748;
+            font-size: 28px;
+        }
+
+        .mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f7fafc;
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: #48bb78;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .toggle-switch:hover {
+            background: #38a169;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .metric-card {
+            text-align: center;
+        }
+
+        .metric-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+        }
+
+        .metric-label {
+            color: #718096;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .metric-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .metric-status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-optimal {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-warning {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .status-critical {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            transition: width 0.5s;
+        }
+
+        .charts-section {
+            grid-column: 1 / -1;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .chart-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .chart-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .chart-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .chart-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .chart-canvas-container {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        canvas {
+            background: white;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 1200px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .controls-section {
+            grid-column: 1 / -1;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .control-item {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .control-name {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+
+        .control-button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-on {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-on:hover {
+            background: #38a169;
+        }
+
+        .btn-off {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-off:hover {
+            background: #cbd5e0;
+        }
+
+        .alerts-section {
+            grid-column: 1 / -1;
+        }
+
+        .alert-item {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-icon {
+            font-size: 24px;
+        }
+
+        .alert-text {
+            flex: 1;
+        }
+
+        .alert-time {
+            color: #6c757d;
+            font-size: 12px;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #718096;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="header-title">
+                <h1>🦟 BSF Farm Control System</h1>
+            </div>
+            <div class="mode-toggle">
+                <span></span>
+                <div onclick="toggleMode()">
+                    <div id="toggleSlider"></div>
+                </div>
+                <span style="font-weight: 600; color: #48bb78;"></span>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- Temperature Card -->
+            <div class="card metric-card">
+                <div class="metric-icon">🌡️</div>
+                <div class="metric-label">Temperature</div>
+                <div class="metric-value" id="tempValue">28.5°C</div>
+                <div class="metric-status status-optimal">Optimal</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 75%;"></div>
+                </div>
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <div class="stat-label">Min</div>
+                        <div class="stat-value">27.2°C</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Max</div>
+                        <div class="stat-value">29.8°C</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Humidity Card -->
+            <div class="card metric-card">
+                <div class="metric-icon">💧</div>
+                <div class="metric-label">Humidity</div>
+                <div class="metric-value" id="humidValue">65%</div>
+                <div class="metric-status status-optimal">Optimal</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 65%;"></div>
+                </div>
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <div class="stat-label">Min</div>
+                        <div class="stat-value">58%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Max</div>
+                        <div class="stat-value">72%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Moisture Card -->
+            <div class="card metric-card">
+                <div class="metric-icon">🌊</div>
+                <div class="metric-label">Substrate Moisture</div>
+                <div class="metric-value" id="moistValue">70%</div>
+                <div class="metric-status status-optimal">Optimal</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 70%;"></div>
+                </div>
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <div class="stat-label">Target</div>
+                        <div class="stat-value">65-75%</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Light Intensity Card -->
+            <div class="card metric-card">
+                <div class="metric-icon">💡</div>
+                <div class="metric-label">Light Intensity</div>
+                <div class="metric-value" id="lightValue">450 lux</div>
+                <div class="metric-status status-optimal">Day Mode</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 45%;"></div>
+                </div>
+                <div class="stats-row">
+                    <div class="stat-item">
+                        <div class="stat-label">Status</div>
+                        <div class="stat-value">☀️ Active</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-section">
+                <h2 style="color: #2d3748; margin-bottom: 10px; font-size: 24px;">📈 Environmental Trends Over Time</h2>
+                <p style="color: #000000; margin-bottom: 20px;">Monitor 24-hour patterns for optimal BSF larvae growth
+                    conditions</p>
+
+                <div class="charts-grid">
+                    <!-- Temperature Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-icon"
+                                style="background: linear-gradient(135deg, #f56565 0%, #c53030 100%);">
+                                🌡️
+                            </div>
+                            <div>
+                                <div class="chart-title">Temperature Over Time</div>
+                                <div style="font-size: 12px; color: #718096;">Optimal: 27-30°C</div>
+                            </div>
+                        </div>
+                        <div class="chart-canvas-container">
+                            <canvas id="tempChart" width="450" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Humidity Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-icon"
+                                style="background: linear-gradient(135deg, #4299e1 0%, #2b6cb0 100%);">
+                                💧
+                            </div>
+                            <div>
+                                <div class="chart-title">Humidity Over Time</div>
+                                <div style="font-size: 12px; color: #718096;">Optimal: 60-70%</div>
+                            </div>
+                        </div>
+                        <div class="chart-canvas-container">
+                            <canvas id="humidChart" width="450" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Moisture Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-icon"
+                                style="background: linear-gradient(135deg, #48bb78 0%, #2f855a 100%);">
+                                🌊
+                            </div>
+                            <div>
+                                <div class="chart-title">Substrate Moisture Over Time</div>
+                                <div style="font-size: 12px; color: #718096;">Optimal: 65-75%</div>
+                            </div>
+                        </div>
+                        <div class="chart-canvas-container">
+                            <canvas id="moistChart" width="450" height="200"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Light Intensity Chart -->
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <div class="chart-icon"
+                                style="background: linear-gradient(135deg, #ed8936 0%, #c05621 100%);">
+                                💡
+                            </div>
+                            <div>
+                                <div class="chart-title">Light Intensity Over Time</div>
+                                <div style="font-size: 12px; color: #718096;">Optimal: 300-600 lux</div>
+                            </div>
+                        </div>
+                        <div class="chart-canvas-container">
+                            <canvas id="lightChart" width="450" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls Section -->
+            <div class="card controls-section">
+                <h3 style="margin-bottom: 10px; color: #2d3748;">Manual Controls</h3>
+                <p style="color: #718096; font-size: 14px; margin-bottom: 20px;">Override automatic control for manual
+                    operation</p>
+
+                <div class="controls-grid">
+                    <div class="control-item">
+                        <div class="control-name">🌀 Ventilation Fan</div>
+                        <button class="control-button btn-on" id="fanBtn" onclick="toggleDevice('fan')">ON</button>
+                        <p style="margin-top: 10px; font-size: 12px; color: #718096;">Running for 12 min</p>
+                    </div>
+
+                    <div class="control-item">
+                        <div class="control-name">💦 Water Pump</div>
+                        <button class="control-button btn-off" id="pumpBtn" onclick="toggleDevice('pump')">OFF</button>
+                        <p style="margin-top: 10px; font-size: 12px; color: #718096;">Last run: 2 hrs ago</p>
+                    </div>
+
+                    <div class="control-item">
+                        <div class="control-name">💡 Grow Light</div>
+                        <button class="control-button btn-on" id="lightBtn"
+                            onclick="toggleDevice('light')">AUTO</button>
+                        <p style="margin-top: 10px; font-size: 12px; color: #718096;">Follows daylight</p>
+                    </div>
+
+                    <div class="control-item">
+                        <div class="control-name">🔥 Heater</div>
+                        <button class="control-button btn-off" id="heaterBtn"
+                            onclick="toggleDevice('heater')">OFF</button>
+                        <p style="margin-top: 10px; font-size: 12px; color: #718096;">Standby</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerts Section -->
+            <div class="card alerts-section">
+                <h3 style="margin-bottom: 15px; color: #2d3748;">System Alerts & Notifications</h3>
+
+                <div class="alert-item">
+                    <div class="alert-icon">⚠️</div>
+                    <div class="alert-text">
+                        <strong>Temperature Warning</strong><br>
+                        Temperature reached 31.2°C - Fan activated automatically
+                    </div>
+                    <div class="alert-time">2:30 PM</div>
+                </div>
+
+                <div class="alert-item" style="background: #d1ecf1; border-left-color: #17a2b8;">
+                    <div class="alert-icon">ℹ️</div>
+                    <div class="alert-text">
+                        <strong>System Info</strong><br>
+                        All sensors operational. WiFi signal: Strong
+                    </div>
+                    <div class="alert-time">Now</div>
+                </div>
+            </div>
+
+            <!-- Production Stats -->
+            <div class="card">
+                <h3 style="margin-bottom: 15px; color: #2d3748;">📊 Production Statistics</h3>
+                <div class="stats-row" style="border: none; padding: 0;">
+                    <div class="stat-item">
+                        <div class="stat-label">Current Batch</div>
+                        <div class="stat-value">Day 12</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Est. Yield</div>
+                        <div class="stat-value">45 kg</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Harvest in</div>
+                        <div class="stat-value">6 days</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Status -->
+            <div class="card">
+                <h3 style="margin-bottom: 15px; color: #2d3748;">⚙️ System Status</h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div
+                        style="display: flex; justify-content: space-between; padding: 10px; background: #f7fafc; border-radius: 5px;">
+                        <span>ESP32 Controller</span>
+                        <span style="color: #48bb78; font-weight: 600;">● Online</span>
+                    </div>
+                    <div
+                        style="display: flex; justify-content: space-between; padding: 10px; background: #f7fafc; border-radius: 5px;">
+                        <span>WiFi Connection</span>
+                        <span style="color: #48bb78; font-weight: 600;">● Strong</span>
+                    </div>
+                    <div
+                        style="display: flex; justify-content: space-between; padding: 10px; background: #f7fafc; border-radius: 5px;">
+                        <span>Data Logging</span>
+                        <span style="color: #48bb78; font-weight: 600;">● Active</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Canvas references
+        const canvases = {
+            temperature: document.getElementById('tempChart'),
+            humidity: document.getElementById('humidChart'),
+            moisture: document.getElementById('moistChart'),
+            light: document.getElementById('lightChart')
+        };
+
+        const contexts = {
+            temperature: canvases.temperature.getContext('2d'),
+            humidity: canvases.humidity.getContext('2d'),
+            moisture: canvases.moisture.getContext('2d'),
+            light: canvases.light.getContext('2d')
+        };
+
+        // Sample data based on BSF optimal conditions from research
+        const chartData = {
+            temperature: {
+                title: 'Temperature (°C)',
+                color: '#f56565',
+                optimalRange: [27, 30],
+                data: [26.5, 27.2, 27.8, 28.5, 29.1, 29.8, 30.2, 29.5, 28.9, 28.3, 27.6, 27.2, 27.8, 28.4, 29.0, 29.6, 30.1, 29.7, 29.2, 28.6, 28.0, 27.4, 27.0, 26.8],
+                unit: '°C',
+                yMin: 25,
+                yMax: 32
+            },
+            humidity: {
+                title: 'Humidity (%)',
+                color: '#4299e1',
+                optimalRange: [60, 70],
+                data: [58, 59, 61, 63, 65, 67, 69, 71, 68, 66, 64, 62, 60, 61, 63, 65, 67, 69, 70, 68, 66, 64, 62, 60],
+                unit: '%',
+                yMin: 50,
+                yMax: 80
+            },
+            moisture: {
+                title: 'Substrate Moisture (%)',
+                color: '#48bb78',
+                optimalRange: [65, 75],
+                data: [64, 65, 66, 68, 70, 72, 74, 73, 71, 69, 67, 66, 65, 67, 69, 71, 73, 74, 72, 70, 68, 66, 65, 64],
+                unit: '%',
+                yMin: 60,
+                yMax: 80
+            },
+            light: {
+                title: 'Light Intensity (lux)',
+                color: '#ed8936',
+                optimalRange: [300, 600],
+                data: [0, 0, 0, 0, 50, 150, 300, 450, 520, 580, 600, 590, 580, 570, 550, 500, 400, 250, 100, 20, 0, 0, 0, 0],
+                unit: ' lux',
+                yMin: 0,
+                yMax: 700
+            }
+        };
+
+        const timeLabels = ['12AM', '1AM', '2AM', '3AM', '4AM', '5AM', '6AM', '7AM', '8AM', '9AM', '10AM', '11AM',
+            '12PM', '1PM', '2PM', '3PM', '4PM', '5PM', '6PM', '7PM', '8PM', '9PM', '10PM', '11PM'];
+
+        function drawChart(type, canvas, ctx) {
+            const data = chartData[type];
+            const padding = 40;
+            const width = canvas.width - padding * 2;
+            const height = canvas.height - padding * 2;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw optimal range background
+            const rangeTop = padding + height - ((data.optimalRange[1] - data.yMin) / (data.yMax - data.yMin) * height);
+            const rangeBottom = padding + height - ((data.optimalRange[0] - data.yMin) / (data.yMax - data.yMin) * height);
+            ctx.fillStyle = 'rgba(72, 187, 120, 0.15)';
+            ctx.fillRect(padding, rangeTop, width, rangeBottom - rangeTop);
+
+            // Draw Y-axis
+            ctx.strokeStyle = '#cbd5e0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, padding + height);
+            ctx.stroke();
+
+            // Draw X-axis
+            ctx.beginPath();
+            ctx.moveTo(padding, padding + height);
+            ctx.lineTo(padding + width, padding + height);
+            ctx.stroke();
+
+            // Draw Y-axis labels
+            ctx.fillStyle = '#718096';
+            ctx.font = '10px Arial';
+            ctx.textAlign = 'right';
+            const ySteps = 5;
+            for (let i = 0; i <= ySteps; i++) {
+                const value = data.yMin + (data.yMax - data.yMin) * (i / ySteps);
+                const y = padding + height - (i / ySteps * height);
+                ctx.fillText(value.toFixed(0), padding - 8, y + 3);
+
+                // Draw grid lines
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(padding + width, y);
+                ctx.stroke();
+            }
+
+            // Draw X-axis labels (every 4 hours)
+            ctx.textAlign = 'center';
+            ctx.font = '9px Arial';
+            for (let i = 0; i < timeLabels.length; i += 4) {
+                const x = padding + (i / (timeLabels.length - 1)) * width;
+                ctx.fillText(timeLabels[i], x, padding + height + 15);
+            }
+
+            // Draw data line
+            ctx.strokeStyle = data.color;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+
+            data.data.forEach((value, index) => {
+                const x = padding + (index / (data.data.length - 1)) * width;
+                const y = padding + height - ((value - data.yMin) / (data.yMax - data.yMin) * height);
+
+                if (index === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+
+            ctx.stroke();
+
+            // Draw data points
+            ctx.fillStyle = data.color;
+            data.data.forEach((value, index) => {
+                if (index % 2 === 0) { // Draw every other point to reduce clutter
+                    const x = padding + (index / (data.data.length - 1)) * width;
+                    const y = padding + height - ((value - data.yMin) / (data.yMax - data.yMin) * height);
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+
+            // Draw current value indicator
+            const lastValue = data.data[data.data.length - 1];
+            const lastX = padding + width;
+            const lastY = padding + height - ((lastValue - data.yMin) / (data.yMax - data.yMin) * height);
+
+            ctx.fillStyle = data.color;
+            ctx.beginPath();
+            ctx.arc(lastX, lastY, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw current value text
+            ctx.fillStyle = data.color;
+            ctx.font = 'bold 11px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(lastValue.toFixed(1) + data.unit, lastX + 8, lastY + 4);
+        }
+
+        function drawAllCharts() {
+            drawChart('temperature', canvases.temperature, contexts.temperature);
+            drawChart('humidity', canvases.humidity, contexts.humidity);
+            drawChart('moisture', canvases.moisture, contexts.moisture);
+            drawChart('light', canvases.light, contexts.light);
+        }
+
+        // Simulate real-time data updates
+        function updateValues() {
+            const temp = (27 + Math.random() * 3).toFixed(1);
+            const humid = (60 + Math.random() * 15).toFixed(0);
+            const moist = (65 + Math.random() * 10).toFixed(0);
+            const light = (400 + Math.random() * 100).toFixed(0);
+
+            document.getElementById('tempValue').textContent = temp + '°C';
+            document.getElementById('humidValue').textContent = humid + '%';
+            document.getElementById('moistValue').textContent = moist + '%';
+            document.getElementById('lightValue').textContent = light + ' lux';
+
+            // Update chart data
+            chartData.temperature.data.shift();
+            chartData.temperature.data.push(parseFloat(temp));
+
+            chartData.humidity.data.shift();
+            chartData.humidity.data.push(parseFloat(humid));
+
+            chartData.moisture.data.shift();
+            chartData.moisture.data.push(parseFloat(moist));
+
+            chartData.light.data.shift();
+            chartData.light.data.push(parseFloat(light));
+
+            // Redraw all charts
+            drawAllCharts();
+        }
+
+        function toggleMode() {
+            const slider = document.getElementById('toggleSlider');
+            if (slider.style.left === '33px') {
+                slider.style.left = '3px';
+            } else {
+                slider.style.left = '33px';
+            }
+        }
+
+        function toggleDevice(device) {
+            const btn = document.getElementById(device + 'Btn');
+            if (btn.classList.contains('btn-on')) {
+                btn.classList.remove('btn-on');
+                btn.classList.add('btn-off');
+                btn.textContent = 'OFF';
+            } else {
+                btn.classList.remove('btn-off');
+                btn.classList.add('btn-on');
+                btn.textContent = 'ON';
+            }
+        }
+
+        // Initialize
+        document.getElementById('toggleSlider').style.left = '33px';
+
+        // Draw initial charts
+        setTimeout(() => {
+            drawAllCharts();
+        }, 100);
+
+        // Update values every 5 seconds
+        setInterval(updateValues, 5000);
+    </script>
+</body>
+
+</html>
